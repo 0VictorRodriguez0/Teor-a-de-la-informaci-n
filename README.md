@@ -5,7 +5,7 @@ Emitar la transferencia de paquetes con las 5 fases de un esquema de comunicaci�
 Mensaje escrito por el usuario
 
 ## Transmisor:
-El mensaje ingresado se guarda en una lista en donde cada posici처n representa un caracter, los datos pasan a un proceso de conversi처n binaria para luego ser enpaquetado con un Header y un Tail.
+El mensaje ingresado se guarda en una lista en donde cada posici처n representa un caracter, los datos pasan a un proceso de conversi처n binaria para luego ser enpaquetado.
 
 ## Canal:
 El canal por el cual sera transmitido es la fibra optica con una posibilidad de ruido en cada caracter en consecuencia a un proceso de selecci처n aleatoria

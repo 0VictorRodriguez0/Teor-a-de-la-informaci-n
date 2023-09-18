@@ -7,10 +7,28 @@ Original file is located at
     https://colab.research.google.com/drive/1AOsUFl83ufnTgiWYl9B6Jw23n4J7HHsG
 """
 
+# pip install bitstring
 
 from bitstring import BitArray
 import random
 import time
+import math
+import random
+
+#Entropia de shannon
+def EntropiaConocida(probabilidad):
+  E = -(math.log(probabilidad, 2))
+  return E
+
+def EntropiaAleatoria(probabilidades):
+  k = len(probabilidades)
+  suma = 0
+  for i in range(0,k):
+    # print(i)
+    if probabilidades[i] > 0:
+      Ek = probabilidades[i] * math.log(probabilidades[i], 2)
+      suma = suma + Ek
+  return -suma
 
 #Fuente de información
 #pide como entrada un mensaje
@@ -44,11 +62,12 @@ def enpaquetar(cadena):
 #entra: palabra de 8 bits
 #sale: palabra con 8 bits con posible cambio en alguno de los bits
 def ruido(LetraBytes):
+  causa = False
   letra = LetraBytes
-  aleatorio1 = random.randint(3, 10)
-  aleatorio2 = random.randint(1, 5)
-  # print(aleatorio1,aleatorio2)
-  if aleatorio1 < aleatorio2:
+  aleatorio1 = random.randint(1, 10)
+  # aleatorio2 = random.randint(1, 5)
+  if aleatorio1 < 3:
+    causa = True
     aleatorioBytes = random.randint(0,7)
     # print(aleatorioBytes,letra[aleatorioBytes])
     if letra[aleatorioBytes] == "0":
@@ -59,17 +78,20 @@ def ruido(LetraBytes):
       letra = letra[:aleatorioBytes] + '0' + letra[aleatorioBytes + 1:]
 
 
-  return letra
+  return letra,causa
 
 #Crea ruido en el mensaje y envia los mensajes cada  0.08 segundos.
 def canal(letraB):
-  letraR = ruido(letraB)
+  letraR,CausaR = ruido(letraB)
+  # print(CausaR)
   # print(letraR)
   velocidad_mbps = 100
   tiempo_teórico = 8 / velocidad_mbps  # Convertimos megabits a bits
   time.sleep(tiempo_teórico)
-  print("transferiendo")
-  return letraR
+  verdad = random.randint(0, 1)
+  if(verdad):
+    print("transferiendo")
+  return letraR,CausaR
 
 #Decodifica el mensaje de binario a carácter
 def decodifica(letraB):
@@ -82,12 +104,22 @@ def decodifica(letraB):
 #Recibe el mensaje enpaquetado y lo decodifica de binario a caracter
 def receptor(listaB):
   MensajeFin = []
+  listaRuido = []
+  # print(len(listaB)-2)
   if((listaB[0] == 'INI') & (listaB[len(listaB)-1] == 'FIN')):
     for i in range(1,len(listaB)-1):
       # print(listaB[i])
-      BinR = canal(listaB[i])
+      BinR,CausaC = canal(listaB[i])
+      #guardar probabilidades
+      if(CausaC):
+        listaRuido.append(1/(len(listaB)-2))
+      else:
+        listaRuido.append(0)
+
       Letra = decodifica(BinR)
       MensajeFin.append(Letra)
+    print("lista de probabilidades: ",listaRuido)
+    print("Entropia de shannon: ",EntropiaAleatoria(listaRuido))
   else:
     print("EL mensaje no se encuentra enpaquetado")
 

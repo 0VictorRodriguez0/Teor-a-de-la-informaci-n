@@ -9,6 +9,8 @@ Original file is located at
 
 # pip install bitstring
 
+"""# Esquema de comunicación"""
+
 from bitstring import BitArray
 import random
 import time
@@ -130,20 +132,286 @@ def Destino(Mensaje):
   MensajeDestino = ''.join(Mensaje)
   print("Mensaje Recibido... :",MensajeDestino)
 
+# #Escribir mensaje
+# mensaje = Finformacin()
+# print("Mensaje enviado.... :",mensaje)
+
+# #pasar el mensaje a una lista
+# ListMensaje = separar(mensaje)
+
+# #convertir cada uno de los caracteres a binario
+# BinariList = [transmite(caracter) for caracter in ListMensaje]
+
+# #enpaquetar los datos
+# packBList = enpaquetar(BinariList)
+# #recibir y decodificar los datos
+# entrega = receptor(packBList)
+
+# #recbir los datos finales y convertir de lista a string
+# Destino(entrega)
+
+
+
+"""# Aplicar Huffman
+
+## arbol Huffman
+"""
+
+import copy # para objetos más complejos o personalizados
+
+class Nodo:
+    def __init__(self, dato, izquieda=None, derecho=None):
+        self.dato = dato
+        self.izquieda = izquieda
+        self.derecho = derecho
+
+class Arbol:
+    # Funciones privadas
+    def __init__(self, dato):
+        self.raiz = Nodo(dato)
+
+    def __inicializar_arbol(self,nodo,dato1,dato2):
+      #Obtner raiz
+      if isinstance(dato1, Nodo):
+        # print(1)
+        if dato1.dato <= dato2:
+          self.__agregar_nodo_izquieda(nodo,dato2) #EL MENOR
+          self.__agregar_nodo_derecho(nodo,dato1)
+        else:
+          self.__agregar_nodo_izquieda(nodo,dato1) #EL MENOR
+          self.__agregar_nodo_derecho(nodo,dato2)
+
+      if isinstance(dato2, Nodo):
+        # print(2)
+        if dato1 <= dato2.dato:
+          self.__agregar_nodo_izquieda(nodo,dato2) #EL MENOR
+          self.__agregar_nodo_derecho(nodo,dato1)
+        else:
+          self.__agregar_nodo_izquieda(nodo,dato1) #EL MENOR
+          self.__agregar_nodo_derecho(nodo,dato2)
+
+      if (not isinstance(dato1, Nodo)) & (not isinstance(dato1, Nodo)) :
+        # print(3)
+        if dato1 <= dato2:
+          self.__agregar_nodo_izquieda(nodo,dato2) #EL MENOR
+          self.__agregar_nodo_derecho(nodo,dato1)
+        else:
+          self.__agregar_nodo_izquieda(nodo,dato1) #EL MENOR
+          self.__agregar_nodo_derecho(nodo,dato2)
+
+
+    def __agregar_nodo_derecho(self,nodo,dato1):
+      if isinstance(dato1, Nodo):
+        nodo.derecho = dato1
+        # print("nodo_derecho")
+      else:
+        nodo.derecho = Nodo(dato1) #penultimo menor
+        # print("numero_derecho")
+
+    def __agregar_nodo_izquieda(self,nodo,dato1):
+      if isinstance(dato1, Nodo):
+        nodo.izquieda = dato1
+        # print("nodo_izquierdo")
+      else:
+        nodo.izquieda = Nodo(dato1) #penultimo menor
+        # print("numero_izquierdo")
+
+
+    def __buscar(self, nodo, busqueda,palabra=""):
+
+        if(nodo.izquieda.dato == busqueda) | (nodo.derecho.dato == busqueda):
+
+          if(nodo.izquieda.dato == busqueda):
+            # print(busqueda,"encontrado en izquierda")
+            return "0" + palabra
+          elif(nodo.derecho.dato == busqueda):
+            # print(busqueda,"encontrado en derecho")
+            return "1" + palabra
+        else:
+
+          if (nodo.derecho.izquieda is not None) | (nodo.derecho.derecho is not None) :
+
+            return self.__buscar(nodo.derecho, busqueda, "1" + palabra)
+
+          else:
+            return self.__buscar(nodo.izquieda, busqueda,"0" + palabra)
+
+
+
+        # if (nodo.izquieda is None) | (nodo.derecho is None):
+        # if nodo.dato == busqueda:
+        #     return nodo
+        # if busqueda < nodo.dato:
+        #     return self.__buscar(nodo.izquierda, busqueda)
+        # else:
+        #     return self.__buscar(nodo.derecha, busqueda)
+
+
+    def __inorden_recursivo(self, nodo):
+        if nodo is not None:
+            self.__inorden_recursivo(nodo.izquieda)
+            print(nodo.dato, end=", ")
+            self.__inorden_recursivo(nodo.derecho)
+
+    def __preorden_recursivo(self, nodo):
+        if nodo is not None:
+            print(nodo.dato, end=", ")
+            # print(nodo.derecho.dato)
+            self.__preorden_recursivo(nodo.izquieda)
+            self.__preorden_recursivo(nodo.derecho)
+
+    def __postorden_recursivo(self, nodo):
+        if nodo is not None:
+            self.__postorden_recursivo(nodo.izquieda)
+            self.__postorden_recursivo(nodo.derecho)
+            print(nodo.dato, end=", ")
+
+    def inorden(self):
+        print("Imprimiendo árbol inorden: ")
+        self.__inorden_recursivo(self.raiz)
+        print("")
+
+    def preorden(self):
+        print("Imprimiendo árbol preorden: ")
+        self.__preorden_recursivo(self.raiz)
+        print("")
+
+    def postorden(self):
+        print("Imprimiendo árbol postorden: ")
+        self.__postorden_recursivo(self.raiz)
+        print("")
+
+    def agregar(self, dato):
+        self.__agregar_recursivo(self.raiz, dato)
+
+    def agregar_ini(self, dato1,dato2):
+        self.__inicializar_arbol(self.raiz, dato1,dato2)
+
+    def buscar(self, busqueda):
+        return self.__buscar(self.raiz, busqueda)
+
+def arbol_huffman(lista_ordenada):
+  ultimo = lista_ordenada[len(lista_ordenada)-1]
+  penultimo = lista_ordenada[len(lista_ordenada)-2]
+
+  raiz1 = ultimo + penultimo
+  Huffman = Arbol(raiz1)
+  Huffman.agregar_ini(ultimo,penultimo)
+  Huffman_copia = copy.copy(Huffman)
+
+  for i in reversed(range(0, len(lista_ordenada)-2)):
+
+    if i != 0:
+      raiz = lista_ordenada[i] + raiz1
+      Huffman_principal = Arbol(raiz)
+      Huffman_principal.agregar_ini(Huffman_copia.raiz,lista_ordenada[i])
+      Huffman_copia = copy.copy(Huffman_principal)
+    else:
+      Huffman_principal = Arbol(None)
+      Huffman_principal.agregar_ini(Huffman_copia.raiz,lista_ordenada[i])
+
+  return Huffman_principal
+
+# # lista = [.09,.4,0.5,.01]
+# lista = [.5,.4,.3,.2,]
+# lista_ordenada = sorted(lista, reverse=True)
+# Huffman_principal = arbol_huffman(lista_ordenada)
+
+# lista_Huffman = []
+# for i in lista_ordenada:
+#   lista_Huffman.append(Huffman_principal.buscar(i))
+#   print(i," ",Huffman_principal.buscar(i))
+
+"""##Esquema de comunicación con huffman"""
+
+from collections import Counter
+
+#obtener frecuencias relativas y ordenarlas de mayor a menor
+def Obtener_frecuencias_relativas(lista_patrones):
+
+  # Calcular la frecuencia de cada palabra
+  contador = Counter(lista_patrones)
+  # print(contador)
+  # Calcular el número total de palabras en la lista
+  total_palabras = len(lista_patrones)
+
+  palabras = []
+  frecuencias_relativas = []
+
+  # Calcular la frecuencia relativa de cada palabra y agregarla a las listas
+  for palabra, count in contador.items():
+      palabras.append(palabra)
+      frecuencia_relativa = count / total_palabras
+      frecuencias_relativas.append(frecuencia_relativa)
+  # Ordenar las palabras y frecuencias juntas en función de las frecuencias (de mayor a menor)
+  palabras_ordenadas, frecuencias_ordenadas = zip(*sorted(zip(palabras, frecuencias_relativas), key=lambda x: x[1], reverse=True))
+
+  # Convertir la tupla en una lista
+  palabras_ordenadas = list(palabras_ordenadas)
+  frecuencias_ordenadas = list(frecuencias_ordenadas)
+
+  #hacer una diferencia para aquellos numero que sean iguales
+  for i in range(0,len(frecuencias_ordenadas)-1):
+    suma =1e-12
+    for j in range(i,len(frecuencias_ordenadas)-1):
+      if(frecuencias_ordenadas[i] == frecuencias_ordenadas[j+1]):
+        # print(i," ", frecuencias_ordenadas[i]," ",j+1,frecuencias_ordenadas[j+1])
+        frecuencias_ordenadas[j+1] = frecuencias_ordenadas[j+1] - suma
+        # print(i," ", frecuencias_ordenadas[i]," ",j+1,frecuencias_ordenadas[j+1])
+        suma = suma + 1e-12
+      else:
+        break;
+
+  return palabras_ordenadas,frecuencias_ordenadas
+
+#agarra la lista de bits y codifica a huffman
+def Transmisor_huffman(BinariList):
+  #obtner frecuencias y patrones ordenados
+  patrones,frecuencias = Obtener_frecuencias_relativas(BinariList)
+  Huffman = arbol_huffman(frecuencias)
+
+  lista_Huffman = []
+  for i in frecuencias:
+    lista_Huffman.append(Huffman.buscar(i))
+    # print(i," ",Huffman.buscar(i))
+  return dict(zip(patrones, lista_Huffman))
+
+def codificar_Huffman(BinariList,handshake):
+  codificar = []
+  for i in BinariList:
+    codificar.append(handshake[i])
+  return codificar
+
+"""**El farsante - Ozuna**
+
+Mi libertad no la quiero
+Tampoco la vida de soltero
+Yo lo que quiero es que quieras lo mismo que todos queremos
+Tener una cuenta de banco con dígitos y muchos ceros
+Hacer el amor a diario y de paso gastar el dinero
+"""
+
 #Escribir mensaje
 mensaje = Finformacin()
 print("Mensaje enviado.... :",mensaje)
+
 
 #pasar el mensaje a una lista
 ListMensaje = separar(mensaje)
 
 #convertir cada uno de los caracteres a binario
 BinariList = [transmite(caracter) for caracter in ListMensaje]
+handshake_reglas = Transmisor_huffman(BinariList)
+#agarrar cada paquete y codificarlo a Huffman
 
-#enpaquetar los datos
-packBList = enpaquetar(BinariList)
-#recibir y decodificar los datos
-entrega = receptor(packBList)
+codificarHuffman =  codificar_Huffman(BinariList,handshake_reglas)
+print(codificarHuffman)
 
-#recbir los datos finales y convertir de lista a string
-Destino(entrega)
+
+# #enpaquetar los datos
+# packBList = enpaquetar(BinariList)
+# #recibir y decodificar los datos
+# entrega = receptor(packBList)
+
+# #recbir los datos finales y convertir de lista a string
+# Destino(entrega)

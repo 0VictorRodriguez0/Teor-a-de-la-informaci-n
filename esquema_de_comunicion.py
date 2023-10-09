@@ -199,6 +199,53 @@ class Arbol:
           self.__agregar_nodo_izquieda(nodo,dato1) #EL MENOR
           self.__agregar_nodo_derecho(nodo,dato2)
 
+    def __agregar_recursivo(self, nodo): #para shannon
+        if len(nodo.dato) == 2:
+          # print("lista",nodo.dato, "tamaño", len(nodo.dato))
+          nodo.izquieda = Nodo([nodo.dato[0]])
+          nodo.derecho = Nodo([nodo.dato[1]])
+
+
+        elif len(nodo.dato) == 1:
+          # print("lista",nodo.dato, "tamaño", len(nodo.dato))
+          nodo.izquieda = Nodo([nodo.dato[0]])
+
+
+        else:
+          lista_separar = nodo.dato
+          # print("lista completa",lista_separar, "tamaño", len(lista_separar))
+
+          mitad = math.floor(len(lista_separar) /2) #redondear hacia abajo
+          mitad1 = lista_separar[0:mitad]
+          mitad2 = lista_separar[mitad:len(lista_separar)]
+          # print("mitad1",mitad1)
+          # print("mitad2",mitad2)
+          nodo.izquieda = Nodo(mitad1)
+          nodo.derecho = Nodo(mitad2)
+          self.__agregar_recursivo(nodo.izquieda)
+          self.__agregar_recursivo(nodo.derecho)
+
+    def __buscar_shannon(self, nodo, busqueda,palabra=""):
+
+        # print("inicia izquierda", nodo.izquieda.dato)
+
+        if len(nodo.izquieda.dato) == 1:
+
+          if nodo.izquieda.dato[0] == busqueda:
+                return "0" + palabra
+
+        # print("inicia derecho", nodo.derecho.dato)
+        if len(nodo.derecho.dato) == 1:
+
+          if nodo.derecho.dato[0] == busqueda:
+                return "1" + palabra
+
+        if busqueda in nodo.izquieda.dato:
+          # print("entra izquierda",nodo.izquieda.dato )
+          return self.__buscar_shannon(nodo.izquieda,busqueda,"0" + palabra)
+        else:
+          # print("entra derecha",nodo.derecho.dato )
+          return self.__buscar_shannon(nodo.derecho,busqueda,"1" + palabra)
 
     def __agregar_nodo_derecho(self,nodo,dato1):
       if isinstance(dato1, Nodo):
@@ -238,15 +285,6 @@ class Arbol:
 
 
 
-        # if (nodo.izquieda is None) | (nodo.derecho is None):
-        # if nodo.dato == busqueda:
-        #     return nodo
-        # if busqueda < nodo.dato:
-        #     return self.__buscar(nodo.izquierda, busqueda)
-        # else:
-        #     return self.__buscar(nodo.derecha, busqueda)
-
-
     def __inorden_recursivo(self, nodo):
         if nodo is not None:
             self.__inorden_recursivo(nodo.izquieda)
@@ -281,14 +319,17 @@ class Arbol:
         self.__postorden_recursivo(self.raiz)
         print("")
 
-    def agregar(self, dato):
-        self.__agregar_recursivo(self.raiz, dato)
+    def agregar(self):
+        self.__agregar_recursivo(self.raiz)
 
     def agregar_ini(self, dato1,dato2):
         self.__inicializar_arbol(self.raiz, dato1,dato2)
 
     def buscar(self, busqueda):
         return self.__buscar(self.raiz, busqueda)
+
+    def buscar_shannon(self, busqueda):
+        return self.__buscar_shannon(self.raiz, busqueda)
 
 def arbol_huffman(lista_ordenada):
   ultimo = lista_ordenada[len(lista_ordenada)-1]
@@ -376,7 +417,20 @@ def Transmisor_huffman(BinariList):
     # print(i," ",Huffman.buscar(i))
   return dict(zip(patrones, lista_Huffman))
 
-def codificar_Huffman(BinariList,handshake):
+#agarra la lista de bits y codifica a huffman
+def Transmisor_shannon(BinariList):
+  #obtner frecuencias y patrones ordenados
+  patrones,frecuencias = Obtener_frecuencias_relativas(BinariList)
+  Shannon = Arbol(frecuencias)
+  Shannon.agregar()
+
+  lista_Huffman = []
+  for i in frecuencias:
+    lista_Huffman.append(Shannon.buscar_shannon(i))
+    # print(i," ",Huffman.buscar(i))
+  return dict(zip(patrones, lista_Huffman))
+
+def codificar_lista(BinariList,handshake):
   codificar = []
   for i in BinariList:
     codificar.append(handshake[i])
@@ -392,20 +446,31 @@ Hacer el amor a diario y de paso gastar el dinero
 """
 
 #Escribir mensaje
-mensaje = Finformacin()
-print("Mensaje enviado.... :",mensaje)
+# mensaje = Finformacin()
+# print("Mensaje enviado.... :",mensaje)
+mensaje = "Mi libertad no la quiero Tampoco la vida de soltero Yo lo que quiero es que quieras lo mismo que todos queremos Tener una cuenta de banco con dígitos y muchos ceros Hacer el amor a diario y de paso gastar el dinero"
+print(" ")
 
+#1 huffman
+#0 shannon
+verdad = 1
 
 #pasar el mensaje a una lista
 ListMensaje = separar(mensaje)
 
 #convertir cada uno de los caracteres a binario
 BinariList = [transmite(caracter) for caracter in ListMensaje]
-handshake_reglas = Transmisor_huffman(BinariList)
-#agarrar cada paquete y codificarlo a Huffman
 
-codificarHuffman =  codificar_Huffman(BinariList,handshake_reglas)
-print(codificarHuffman)
+#realizar reglas segun el agoritmo
+if verdad:
+  handshake_reglas = Transmisor_huffman(BinariList)
+else:
+  handshake_reglas = Transmisor_shannon(BinariList)
+
+
+#agarrar cada paquete y codificarlo
+codificar =  codificar_lista(BinariList,handshake_reglas)
+print(codificar)
 
 
 # #enpaquetar los datos

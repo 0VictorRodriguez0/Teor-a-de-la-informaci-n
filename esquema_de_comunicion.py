@@ -150,11 +150,9 @@ def Destino(Mensaje):
 # #recbir los datos finales y convertir de lista a string
 # Destino(entrega)
 
+"""# Aplicar Huffman, shannnon y arbol binario
 
-
-"""# Aplicar Huffman
-
-## arbol Huffman
+## Aplicar Huffman, shannnon y arbol binario
 """
 
 import copy # para objetos más complejos o personalizados
@@ -170,6 +168,7 @@ class Arbol:
     def __init__(self, dato):
         self.raiz = Nodo(dato)
 
+    #AGREGAR DATOS POR HUFFMAN
     def __inicializar_arbol(self,nodo,dato1,dato2):
       #Obtner raiz
       if isinstance(dato1, Nodo):
@@ -199,6 +198,7 @@ class Arbol:
           self.__agregar_nodo_izquieda(nodo,dato1) #EL MENOR
           self.__agregar_nodo_derecho(nodo,dato2)
 
+    #AGREGAR DATOS POR SHANON FANON
     def __agregar_recursivo(self, nodo): #para shannon
         if len(nodo.dato) == 2:
           # print("lista",nodo.dato, "tamaño", len(nodo.dato))
@@ -225,6 +225,20 @@ class Arbol:
           self.__agregar_recursivo(nodo.izquieda)
           self.__agregar_recursivo(nodo.derecho)
 
+    #AGREGAR DATOS POR UN ARBOL BINARIO
+    def __agregar_arbol_binario(self, nodo, dato):
+        if dato < nodo.dato:
+            if nodo.izquieda is None:
+                nodo.izquieda = Nodo(dato)
+            else:
+                self.__agregar_arbol_binario(nodo.izquieda, dato)
+        else:
+            if nodo.derecho is None:
+                nodo.derecho = Nodo(dato)
+            else:
+                self.__agregar_arbol_binario(nodo.derecho, dato)
+
+    # BUSCAR DATOS POR SHANNON FANON
     def __buscar_shannon(self, nodo, busqueda,palabra=""):
 
         # print("inicia izquierda", nodo.izquieda.dato)
@@ -247,6 +261,17 @@ class Arbol:
           # print("entra derecha",nodo.derecho.dato )
           return self.__buscar_shannon(nodo.derecho,busqueda,"1" + palabra)
 
+    #BUSCAR DATOS POR ARBOL BINARIO
+    def __buscar_arbol_binario(self, nodo, busqueda,palabra=""):
+        if nodo is None:
+            return None
+        if nodo.dato == busqueda:
+            return palabra
+        if busqueda < nodo.dato:
+            return self.__buscar_arbol_binario(nodo.izquieda, busqueda,"0" + palabra)
+        else:
+            return self.__buscar_arbol_binario(nodo.derecho, busqueda,"1" + palabra)
+
     def __agregar_nodo_derecho(self,nodo,dato1):
       if isinstance(dato1, Nodo):
         nodo.derecho = dato1
@@ -263,7 +288,7 @@ class Arbol:
         nodo.izquieda = Nodo(dato1) #penultimo menor
         # print("numero_izquierdo")
 
-
+    #BUSCAR DATOS POR HUFFMAN
     def __buscar(self, nodo, busqueda,palabra=""):
 
         if(nodo.izquieda.dato == busqueda) | (nodo.derecho.dato == busqueda):
@@ -331,6 +356,13 @@ class Arbol:
     def buscar_shannon(self, busqueda):
         return self.__buscar_shannon(self.raiz, busqueda)
 
+    def agregar_arbol_binario(self, dato):
+        self.__agregar_arbol_binario(self.raiz, dato)
+
+    def buscar_arbol_binario(self, busqueda):
+        return self.__buscar_arbol_binario(self.raiz, busqueda)
+
+#Ralizar arbol de huffman
 def arbol_huffman(lista_ordenada):
   ultimo = lista_ordenada[len(lista_ordenada)-1]
   penultimo = lista_ordenada[len(lista_ordenada)-2]
@@ -353,17 +385,35 @@ def arbol_huffman(lista_ordenada):
 
   return Huffman_principal
 
-# # lista = [.09,.4,0.5,.01]
-# lista = [.5,.4,.3,.2,]
-# lista_ordenada = sorted(lista, reverse=True)
-# Huffman_principal = arbol_huffman(lista_ordenada)
+#aplicar el cifrado RLE a una cadena
+def cifrar_RLE(cadena):
+  RLE = []
+  #incializar contador en 1
+  contador = 1
+  simbolo = cadena[0]
+  #ingresar el primer simbolo
+  RLE.append(cadena[0])
+  for i in range(1,len(cadena)):
+    #si es igual al siguiente elemento incrmenetar contador
+    if(simbolo == cadena[i]):
+        contador = contador + 1
+    else:
+      #si es diferente cambiar contador a 1  y el simbolo
+      #insertar en la cola el valor del contador y el simbolo
+        RLE.append(contador)
+        RLE.append(cadena[i])
+        contador = 1
+        simbolo = cadena[i]
 
-# lista_Huffman = []
-# for i in lista_ordenada:
-#   lista_Huffman.append(Huffman_principal.buscar(i))
-#   print(i," ",Huffman_principal.buscar(i))
+  RLE.append(contador)
+  # converitir cada elemento a string
+  Elemento_RLE = [str(elemento) for elemento in RLE]
 
-"""##Esquema de comunicación con huffman"""
+  # unir la cadena en un string
+  cadena_RLE = ''.join(Elemento_RLE)
+  return cadena_RLE
+
+"""##Esquema de comunicación con huffman y shannnon"""
 
 from collections import Counter
 
@@ -430,53 +480,263 @@ def Transmisor_shannon(BinariList):
     # print(i," ",Huffman.buscar(i))
   return dict(zip(patrones, lista_Huffman))
 
+#agarra la lista de bits y codifica a arbol binario
+def Transmisor_arbol_binario(BinariList):
+  #obtner frecuencias y patrones ordenados
+  patrones,frecuencias = Obtener_frecuencias_relativas(BinariList)
+
+  # Combina las dos listas en una sola lista de tuplas
+  combinadas = list(zip(patrones, frecuencias))
+
+  # Baraja la lista combinada
+  random.shuffle(combinadas)
+
+  # Divide la lista combinada en las dos listas originales
+  patrones_barajadas, frecuencias_barajadas = zip(*combinadas)
+
+  # print(patrones_barajadas)
+  # print(frecuencias_barajadas)
+
+  promedio = sum(frecuencias_barajadas) / len(frecuencias_barajadas)
+
+  arbol_binario = Arbol(promedio)
+  for i in range(0,len(frecuencias_barajadas)):
+    arbol_binario.agregar_arbol_binario(frecuencias_barajadas[i])
+
+
+  lista_arbol_binario = []
+  for i in frecuencias_barajadas:
+    lista_arbol_binario.append(arbol_binario.buscar_arbol_binario(i))
+    # print(i," ",Huffman.buscar(i))
+  return dict(zip(patrones_barajadas, lista_arbol_binario))
+
+def Transmisor_RLE(BinariList):
+  #obtener frecuencias y patrones ordenados(solo se usaran los patrones)
+  patrones,frecuencias = Obtener_frecuencias_relativas(BinariList)
+
+  lista_RLE = []
+  for i in patrones:
+    lista_RLE.append(cifrar_RLE(i))
+
+  return dict(zip(patrones,lista_RLE))
+
 def codificar_lista(BinariList,handshake):
   codificar = []
   for i in BinariList:
     codificar.append(handshake[i])
   return codificar
 
-"""**El farsante - Ozuna**
+def Decoficar_lista(Lista_codificada,handshake):
+  decodificar = []
+  #cambia llaves por valores en el diccionario :D
+  handshake_reglas_invertido = {valor: clave for clave, valor in handshake_reglas.items()}
 
-Mi libertad no la quiero
-Tampoco la vida de soltero
-Yo lo que quiero es que quieras lo mismo que todos queremos
-Tener una cuenta de banco con dígitos y muchos ceros
-Hacer el amor a diario y de paso gastar el dinero
+  for i in Lista_codificada:
+    decodificar.append(handshake_reglas_invertido[i])
+  return decodificar
+
+def convertir_caracter(lista_decodificada):
+  mensaje = []
+  for i in lista_decodificada:
+    #  bits a decimal
+    decimal = int(i, 2)
+    # decimal a carácter
+    caracter = chr(decimal)
+    mensaje.append(caracter)
+  cadena = ''.join(mensaje)
+  return cadena
+
+def Destino(Mensaje_binario):
+  Mensaje = convertir_caracter(mensajeDecodificado)
+  print(Mensaje)
+
+"""# Implementar canales"""
+
+import random
+
+#elimina un valor aleatorio a la misma posicion de amabs listas
+#regresa dos listas y indice del valor eliminado
+def eliminar_aleatorio(lista1, lista2):
+    if lista1 and lista2:  # Verificar si ambas listas no están vacías
+        indice_aleatorio = random.randint(0, min(len(lista1), len(lista2)) - 1)
+        lista1.pop(indice_aleatorio)
+        valor_eliminado = lista2[indice_aleatorio]
+        lista2.pop(indice_aleatorio)
+        return lista1,lista2,valor_eliminado
+
+# # Ejemplo de uso:
+# mi_lista = [1, 2, 3, 4, 9, 5]
+# indices = [11,22,33,34,35]
+# lita,indi,indice_eliminado = eliminar_aleatorio(mi_lista,indices)
+# print(lita,indi,indice_eliminado)
+
+#actualiza los valores del canal y implementa ruido a los canales
+#salida:
+# canales modificados
+# verdad ruido: para indentificar si entro a un canal
+# canal usado : conocer el canal por el cual transmitio los datos
+# indice eliminado: conocer el indice del valor eliminado
+def canal(paquete,indices,canales):
+  # print("mete canal",canales)
+  # print(paquete)
+  # print(indices)
+  #verifica si entro a un canal
+  verdad = False
+  #verifica si se aplico ruido
+  verdad_ruido = False
+  canal_usado = None
+  indice_eliminado = None
+  for i in range(0,len(canales)):
+    #revisa si hay ruido
+    if(canales[i][0] == 0):
+      verdad = True
+      canal_usado = i
+      # print("entra",i)
+
+      if(random.randint(0, 1)):
+        # print("entra random")
+        canales[i][0] = 1
+
+      #meter paquete y indices al canal
+      canales[i][1] = paquete
+      canales[i][2] = indices
+      # print("meter",canales)
+      if(canales[i][0] == 1):
+        # print("mete ruido")
+        verdad_ruido = True
+        canales[i][1], canales[i][2],indice_eliminado = eliminar_aleatorio(canales[i][1],canales[i][2])
+        # print("cambio",canales[i][1], canales[i][2],indice_eliminado)
+
+        ############## RESOLVER COMO BUSCAR EL INDICE FALTANTE
+        #si pone ruido en el ultimo canal, quitar ruido en todos los canales
+        for j in range(0,len(canales)):
+          canales[j][0] = 0
+
+
+      break
+
+  #Recetear canal
+  # if(verdad == False):
+  #   for i in range(0,len(canales)):
+  #     canales[i][0] = 0
+
+  return canales,verdad_ruido,canal_usado,indice_eliminado
+
+#envia 4 paquetes al canal,recibe el paquete completo y lo decodifica a binario
+#devuelve una lista con los valores decodifcados
+def Receptor(mensaje_codificado,reglas):
+  #inicializar canales
+  canales_usado = [[0,None,None],[0,None,None],[0,None,None],[0,None,None]]
+  paquete = []
+  indices = []
+  recibe_paquetes = lista_nula = [None] * len(mensaje_codificado)
+
+  #inicializar tamaño y contador
+  tamaño = len(mensaje_codificado)
+  contador = 0
+  suma = 4
+
+  #envia 4 paquetes al canal
+  #termina cuando el contador es mayor a tamaño
+  while contador < tamaño:
+    for i in range(contador,contador+suma): #aqui
+      # print(contador,contador + suma)
+
+      #agarra paquetes de 4
+      if i != (tamaño):
+        # print(i,mensaje_codificado[i])
+        paquete.append(mensaje_codificado[i])
+        indices.append(i)
+      else:
+        contador = contador + suma
+        break
+    contador = contador + suma
+    # print("indice y paquetes",paquete,indices)
+
+    #meter paquetes a canal
+    #canales_usado: requesa canales con información
+    #indice_eliminado: si hay elementos significa que se le aplico ruido
+    #canal usado: conocer el canal que fue usado para transmitir el mensaje
+
+    canales_usado,verdad_ruido,canal_usado,indice_eliminado = canal(paquete,indices,canales_usado)
+
+    paquete = []
+    indices = []
+
+    #guardar valores que no se pudieron transmitir
+    if indice_eliminado == None:
+      suma = 4
+    else:
+      suma = 3
+      # contador = contador - 1
+      paquete.append(mensaje_codificado[indice_eliminado])
+      indices.append(indice_eliminado)
+
+    #ingresar valores obtenidos en una lista
+    valores_obtenido = canales_usado[canal_usado][1]
+    indices_de_valores = canales_usado[canal_usado][2]
+    # print("paquete obtenido",valores_obtenido,indices_de_valores)
+
+    for valorEnviado, indiceEnviado in zip(valores_obtenido, indices_de_valores):
+      recibe_paquetes[indiceEnviado] = valorEnviado
+
+    # print(recibe_paquetes)
+
+  #Revisa si quedaron paquetes en la lista y lo engresa al paquete final
+  if paquete:
+    # print("no esta vacia",paquete[0],indices[0])
+    recibe_paquetes[indices[0]] = paquete[0]
+
+
+  decodificar = Decoficar_lista(recibe_paquetes,reglas)
+  return decodificar
+
+"""#Esquema de comunicación con canal
+
+**El farsante - Ozuna**
+
+Mi libertad no la quiero Tampoco la vida de soltero Yo lo que quiero es que quieras lo mismo que todos queremos Tener una cuenta de banco con dígitos y muchos ceros Hacer el amor a diario y de paso gastar el dinero
 """
 
 #Escribir mensaje
 # mensaje = Finformacin()
 # print("Mensaje enviado.... :",mensaje)
-mensaje = "Mi libertad no la quiero Tampoco la vida de soltero Yo lo que quiero es que quieras lo mismo que todos queremos Tener una cuenta de banco con dígitos y muchos ceros Hacer el amor a diario y de paso gastar el dinero"
-print(" ")
+mensaje = "Miii libertad no la quiero Tampoco la vida de soltero Yo lo que quiero es que quieras lo mismo que todos queremos Tener una cuenta de banco con digitos y muchos ceros Hacer el amor a diario y de paso gastar el dinero"
+print("mensaje enviado")
+print(mensaje)
 
-#1 huffman
-#0 shannon
-verdad = 1
+#poner opción
+#############
+verdad = 3  #
+#############
 
 #pasar el mensaje a una lista
 ListMensaje = separar(mensaje)
-
 #convertir cada uno de los caracteres a binario
 BinariList = [transmite(caracter) for caracter in ListMensaje]
 
-#realizar reglas segun el agoritmo
-if verdad:
+#realizar regla de codificación segun el agoritmo
+if verdad == 0:
   handshake_reglas = Transmisor_huffman(BinariList)
-else:
+elif verdad == 1:
   handshake_reglas = Transmisor_shannon(BinariList)
-
+elif verdad == 2:
+  handshake_reglas = Transmisor_arbol_binario(BinariList)
+elif verdad == 3:
+  handshake_reglas = Transmisor_RLE(BinariList)
 
 #agarrar cada paquete y codificarlo
 codificar =  codificar_lista(BinariList,handshake_reglas)
+
+print("Mensaje codificado")
 print(codificar)
+print("reglas ")
+for clave, valor in handshake_reglas.items():
+    print(f"{clave}: {valor}")
 
+#transmir el mensaje por el receptor
+mensajeDecodificado = Receptor(codificar,handshake_reglas)
 
-# #enpaquetar los datos
-# packBList = enpaquetar(BinariList)
-# #recibir y decodificar los datos
-# entrega = receptor(packBList)
-
-# #recbir los datos finales y convertir de lista a string
-# Destino(entrega)
+#recibir el mensaje
+print("mensaje")
+Destino(mensajeDecodificado)

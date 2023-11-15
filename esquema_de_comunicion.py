@@ -550,7 +550,10 @@ def Destino(Mensaje_binario):
   Mensaje = convertir_caracter(mensajeDecodificado)
   print(Mensaje)
 
-"""# Implementar canales"""
+"""# Implementar canales y HASH
+
+## Canal
+"""
 
 import random
 
@@ -622,6 +625,44 @@ def canal(paquete,indices,canales):
 
   return canales,verdad_ruido,canal_usado,indice_eliminado
 
+"""##Función generar Hash y comparar HASH en la ultima parte del receptor"""
+
+#Crear HASH
+import hashlib
+def generaHash(dato):
+  #converitr a binario
+  bdatos = bytes(dato,'utf-8')
+  #intrucciones
+  h = hashlib.new("sha256",bdatos)
+  #convertir
+  digest=h.hexdigest()
+  return digest
+
+#Comparar Hash
+#cadenaList - cadena en HASH
+#Diccionario - reglas
+def CompararHash(cadenaList,Diccionario):
+  encontro = False
+  for clave, valor in Diccionario.items():
+    #Si la compración es verdadera returna la clave de la posición del valor del Diccionario
+    if(generaHash(valor) == cadenaList):
+      return clave
+
+  #Valor no encontrado
+  if(encontro == False):
+    #Return "?" en binario
+    return "00111111"
+
+def Decoficar_lista(Lista_codificada,handshake):
+  decodificar = []
+  #cambia llaves por valores en el diccionario :D
+  # handshake_reglas_invertido = {valor: clave for clave, valor in handshake_reglas.items()}
+
+  #Recorrer lista
+  for i in Lista_codificada:
+    decodificar.append(CompararHash(i,handshake))
+  return decodificar
+
 #envia 4 paquetes al canal,recibe el paquete completo y lo decodifica a binario
 #devuelve una lista con los valores decodifcados
 def Receptor(mensaje_codificado,reglas):
@@ -687,7 +728,8 @@ def Receptor(mensaje_codificado,reglas):
     # print("no esta vacia",paquete[0],indices[0])
     recibe_paquetes[indices[0]] = paquete[0]
 
-
+  #-----------------------------------------------------------
+  #Al hacer la decoficación igual revisa si la comparación con el Hash es verdadera
   decodificar = Decoficar_lista(recibe_paquetes,reglas)
   return decodificar
 
@@ -727,16 +769,20 @@ elif verdad == 3:
 
 #agarrar cada paquete y codificarlo
 codificar =  codificar_lista(BinariList,handshake_reglas)
+#Pasar a Hash
+Hash = [generaHash(cadena) for cadena in codificar]
 
-print("Mensaje codificado")
+print("\nMensaje codificado")
 print(codificar)
-print("reglas ")
+print("\nMensaje en SHA256")
+print(Hash)
+print("\nreglas ")
 for clave, valor in handshake_reglas.items():
     print(f"{clave}: {valor}")
 
-#transmir el mensaje por el receptor
-mensajeDecodificado = Receptor(codificar,handshake_reglas)
+#transmir el mensaje por el receptor en SHA256
+mensajeDecodificado = Receptor(Hash,handshake_reglas)
 
 #recibir el mensaje
-print("mensaje")
+print("\nmensaje")
 Destino(mensajeDecodificado)

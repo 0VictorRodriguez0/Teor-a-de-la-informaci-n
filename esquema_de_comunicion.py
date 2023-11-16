@@ -625,6 +625,42 @@ def canal(paquete,indices,canales):
 
   return canales,verdad_ruido,canal_usado,indice_eliminado
 
+"""## Busqueda binaria y separar diccionario"""
+
+def busqueda_binaria(lista_valores, buscar):
+    inicio = 0
+    fin = len(lista_valores) - 1
+    #si inicio es mayor a fin se termina
+    while inicio <= fin:
+        #calcular la mitad
+        medio = (inicio + fin) // 2
+
+        #si lo  encuentra termina
+        if lista_valores[medio] == buscar:
+            return medio
+        #si la busqueda es menor al valor del medio, el final se marca como medio -1
+        if buscar < lista_valores[medio]:
+            fin = medio - 1
+        #si la busqueda es mayor al valor del medio, se cambia el inicio como medio + 1
+        else:
+            inicio = medio + 1
+    # Si salimos del ciclo significa que no existe el valor
+    return -1
+
+#separa el diccionario en claves y valores
+#claves y valores se ordenan deacuerdo al sort de valores
+#returna clavaes y valores ordenados por el sort de valores
+def OrdenarSeparar(diccionario):
+  claves = [str(clave) for clave in diccionario.keys()]
+  valores = [str(valor) for valor in diccionario.values()]
+  # Combina las listas de claves y valores
+  claves_y_valores = list(zip(claves, valores))
+
+  # Ordena la lista combinada por los valores
+  claves_ordenadas = [clave for clave, valor in sorted(claves_y_valores, key=lambda x: x[1])]
+  valores.sort()
+  return claves_ordenadas,valores
+
 """##Función generar Hash y comparar HASH en la ultima parte del receptor"""
 
 #Crear HASH
@@ -641,15 +677,12 @@ def generaHash(dato):
 #Comparar Hash
 #cadenaList - cadena en HASH
 #Diccionario - reglas
-def CompararHash(cadenaList,Diccionario):
-  encontro = False
-  for clave, valor in Diccionario.items():
-    #Si la compración es verdadera returna la clave de la posición del valor del Diccionario
-    if(generaHash(valor) == cadenaList):
-      return clave
-
-  #Valor no encontrado
-  if(encontro == False):
+def CompararHash(cadenaList,claves,valores):
+  indice = busqueda_binaria(valores, cadenaList)
+  if(indice != -1):
+    # print(indice)
+    return claves[indice]
+  else:
     #Return "?" en binario
     return "00111111"
 
@@ -657,10 +690,13 @@ def Decoficar_lista(Lista_codificada,handshake):
   decodificar = []
   #cambia llaves por valores en el diccionario :D
   # handshake_reglas_invertido = {valor: clave for clave, valor in handshake_reglas.items()}
+  #par las claves a Hash
+  diccionario_hash = {clave: generaHash(valor) for clave, valor in handshake.items()}
+  claves_ordenados,valores_ordenados = OrdenarSeparar(diccionario_hash)
 
   #Recorrer lista
   for i in Lista_codificada:
-    decodificar.append(CompararHash(i,handshake))
+    decodificar.append(CompararHash(i,claves_ordenados,valores_ordenados))
   return decodificar
 
 #envia 4 paquetes al canal,recibe el paquete completo y lo decodifica a binario
@@ -730,6 +766,7 @@ def Receptor(mensaje_codificado,reglas):
 
   #-----------------------------------------------------------
   #Al hacer la decoficación igual revisa si la comparación con el Hash es verdadera
+  # reglas_hash = [generaHash(cadena) for cadena in reglas]
   decodificar = Decoficar_lista(recibe_paquetes,reglas)
   return decodificar
 
@@ -744,6 +781,7 @@ Mi libertad no la quiero Tampoco la vida de soltero Yo lo que quiero es que quie
 # mensaje = Finformacin()
 # print("Mensaje enviado.... :",mensaje)
 mensaje = "Miii libertad no la quiero Tampoco la vida de soltero Yo lo que quiero es que quieras lo mismo que todos queremos Tener una cuenta de banco con digitos y muchos ceros Hacer el amor a diario y de paso gastar el dinero"
+# mensaje = "Y baila lento flor morada, que me recuerdas a mi amada Ella me esta esperando en casa y yo muriendo por volver Asi es la vida flor morada, a veces suele ser malvada Tu de mi estas enamorada y yo muriendo por volver muriendo por volver, muriendo por volver"
 print("mensaje enviado")
 print(mensaje)
 
